@@ -206,6 +206,8 @@ ScreenCommand(){
   sudo cp /etc/screenrc /tmp/screencmd 2>/dev/null
   sudo echo "logfile /tmp/screencmd.log">>/tmp/screencmd
   sudo su -c "screen -c /tmp/screencmd -L -A -m -d -S screencmd $1" "$User"
+  local cols=$(GetScreenWidth); [ "$cols" ] || cols=80
+  EchoGreen -n "\r\033[K    `echo \"Executing: $1\" | cut -c 1-$(( cols - 4 ))`"
   while ps -ef | grep "SCREEN -c /tmp/screencmd -L -A -m -d -S screencmd" | grep -v grep >/dev/null; do
     local LOGLINE="`sudo tail -1 /tmp/screencmd.log`"
     if [ "$LOGLINE" = "" ]; then
@@ -215,11 +217,10 @@ ScreenCommand(){
       LOGLINE="`sudo tail -3 /tmp/screencmd.log | head -1`"
     fi
     if [ "$LOGLINE" != "" ]; then
-      local cols=$(GetScreenWidth)
-      [ "$cols" ] || cols=80
+      local cols=$(GetScreenWidth); [ "$cols" ] || cols=80
       EchoGreen -n "\r\033[K    `echo \"$LOGLINE\" | cut -c 1-$(( cols - 4 ))`"
     fi
-    sleep .5
+    sleep 1
   done
   ExitCode="$?"
   if [ "$ExitCode" != "0" ]; then
