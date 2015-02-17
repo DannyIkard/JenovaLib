@@ -199,6 +199,35 @@ InstallPkg(){
   fi
 }
 
-
-
-
+ScreenCommand(){
+  User="$1"; shift
+  rm /tmp/screencmd 2>/dev/null
+  rm /tmp/screencmd.log 2>/dev/null
+  sudo cp /etc/screenrc /tmp/screencmd 2>/dev/null
+  sudo echo "logfile /tmp/screencmd.log">>/tmp/screencmd
+  sudo su -c "screen -c /tmp/screencmd -L -A -m -d -S screencmd $1" "$User"
+  while ps -ef | grep "SCREEN -c /tmp/screencmd -L -A -m -d -S screencmd" | grep -v grep >/dev/null; do
+    local LOGLINE="`sudo tail -1 /tmp/screencmd.log`"
+    if [ "$LOGLINE" = "" ]; then
+      LOGLINE="`sudo tail -2 /tmp/screencmd.log | head -1`"
+    fi
+    if [ "$LOGLINE" = "" ]; then
+      LOGLINE="`sudo tail -3 /tmp/screencmd.log | head -1`"
+    fi
+    if [ "$LOGLINE" != "" ]; then
+      local cols=$(GetScreenWidth)
+      [ "$cols" ] || cols=80
+      EchoGreen -n "\r\033[K    `echo \"$LOGLINE\" | cut -c 1-$(( cols - 4 ))`"
+    fi
+    sleep .5
+  done
+  ExitCode="$?"
+  if [ "$ExitCode" != "0" ]; then
+    EchoRed "\n  Exit-$?"
+  else
+    StatusOK
+  fi
+  cat /tmp/screencmd.log
+  rm /tmp/screencmd 2>/dev/null
+  rm /tmp/screencmd.log 2>/dev/null
+}
