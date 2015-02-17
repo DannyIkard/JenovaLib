@@ -228,7 +228,6 @@ ScreenCommand(){
   else
     StatusOK
   fi
-  cat /tmp/screencmd.log
   rm /tmp/screencmd 2>/dev/null
   rm /tmp/screencmd.log 2>/dev/null
 }
